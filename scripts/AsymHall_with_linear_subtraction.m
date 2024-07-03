@@ -52,6 +52,19 @@ end
 newData.newFieldH = [newFieldH, flip(newFieldH)];
 newData.newResistance = [asymPosResistance; asymNegResistance];
 
+%% ############### Linear Fitting for Specified Range ###############
+% Define the high-field linear range
+linearRangeToFit = (newFieldH >= 7000);
+fieldHToFit = newFieldH(linearRangeToFit);
+asymResistanceToFit = asymPosResistance(linearRangeToFit);
+% Perform linear fit constrained to pass through origin
+slope = fieldHToFit' \ asymResistanceToFit; % This gives the slope
+% Create the linear fit line over the entire field range
+fitAsymPosResistance = slope .* newFieldH;
+% Subtract the linear fit from the asymPosResistance
+asymPosResistance = asymPosResistance' - fitAsymPosResistance;
+asymNegResistance = asymNegResistance' - fitAsymPosResistance;
+
 %% ############### Plot Data ###############
 figure;
 hold on;
