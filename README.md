@@ -3,6 +3,7 @@
 
 - [PHE 测试时消除垂直磁场分量的影响](#PHE-测试时消除垂直磁场分量的影响)
 - [Hall 效应反对称化处理](#Hall-效应反对称化处理)
+- [SDE-IV 处理](#SDE-IV-处理)
 
 ## PHE 测试时消除垂直磁场分量的影响
 
@@ -141,3 +142,6 @@ $$
 - [Hall 效应反对称化处理完整代码](./scripts/AsymHall.m)
 	- [with linear subtraction](./scripts/AsymHall_with_linear_subtraction.m)：这个代码可能在处理上存在一些问题，需要修改
 - [Hall 效应反对称化处理可调用函数](./scripts/asym_Hall.m)
+
+## SDE-IV 处理
+- 更新中
