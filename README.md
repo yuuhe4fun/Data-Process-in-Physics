@@ -145,3 +145,10 @@ $$
 
 ## SDE-IV 处理
 - 更新中
+
+参考代码：
+
+ - [仅对IV代码进行分拆](./scripts/SDE_IV_Seperate.m)
+ - [Ic拟合完整代码](./scripts/SDE_IV_Ic_Fitting.m)
+	- 该代码对IV拆分的同时分别计算了相应的 $`I_{c-}`$  和 $`I_{c+}`$
+	- 最终输出 I_c 和 H 的关系图，具体Ic-还是Ic+可以修改代码得到

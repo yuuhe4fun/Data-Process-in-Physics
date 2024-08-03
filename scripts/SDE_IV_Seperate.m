@@ -1,9 +1,9 @@
 clc;clear;close all;
 %% ############### User Defined ###############
 % Data file name
-file_name = 'test-1.txt.dat';
+file_name = 'SDE.dat';
 % Magnetic fields in Oersted (Oe)
-FieldH = {10000; 9000; 8000; 7000; 6000; 5000; 4000; 3000; 2000; 1000; 0; -1000};
+FieldH = {12500; 12000; 11000; 10000; 9000; 8000; 7000; 6000; 5000; 4000; 3000; 2000; 1000; 0; -1000; -2000; -3000; -4000; -3000; -2000; -1000; 0; 1000; 2000; 3000; 4000};
 % Current step in Amperes (A)
 IStep = 1E-6;
 
@@ -34,7 +34,7 @@ for i = 1:length(FieldH)
     field_data = [currentSegment, voltageSegment, dVdISegment];
     
     % Create a filename for this magnetic field
-    outputFileName = sprintf('Field_%dOe.txt', FieldH{i});
+    outputFileName = sprintf('Field_%dOe_%d.txt', FieldH{i}, i);
     % Save the data to a file
     save(outputFileName, 'field_data', '-ascii');
 end
