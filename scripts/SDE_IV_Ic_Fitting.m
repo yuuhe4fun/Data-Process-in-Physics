@@ -11,7 +11,7 @@ IStep = 1E-6;
 
 % Specify the range of data rows to be fitted, e.g. from row 1000 to row
 %   1601
-rowRangem = 1:1000; % to fit the Ic-
+rowRangem = 1:600; % to fit the Ic-
 rowRangep = 1000:1601; % to fit the Ic+
 % Initial guesses [Ic, Rn]
 initialGuess = [1, 10];
@@ -54,13 +54,31 @@ disp('Data has been separated and saved according to magnetic fields.');
 %   format 'Field_*Oe_*.txt'.
 files = dir('Field_*Oe_*.txt');
 
+% Extract and sort the serial number in the file name
+fileOrder = zeros(length(files), 1);
+for i = 1:length(files)
+    % Extracting serial numbers from filenames using regular expressions
+    pattern = 'Field_(-?\d+)Oe_(\d+).txt';
+    matches = regexp(files(i).name, pattern, 'tokens');
+    if ~isempty(matches)
+        % Convert serial numbers to numbers and store
+        fileOrder(i) = str2double(matches{1}{2});
+    else
+        error('Serial number in filename not found');
+    end
+end
+
+% Sort by serial number of extraction
+[~, sortedIdx] = sort(fileOrder);
+sortedFiles = files(sortedIdx);
+
 % Initialise the structure that stores the fitting results
 fitResults = struct();
 
 % Iterate through all documents
-for i = 1:length(files)
+for i = 1:length(sortedFiles)
     % Read file name
-    fileName = files(i).name;
+    fileName = sortedFiles(i).name;
     % Read file data
     data = load(fileName);
     
@@ -83,13 +101,27 @@ for i = 1:length(files)
     fitResults(i).Rnm = fittedParamsm(2);
     fitResults(i).Icp = fittedParamsp(1);
     fitResults(i).Rnp = fittedParamsp(2);
+    
+    % Extracting magnetic field values using regular expressions
+    pattern = 'Field_(-?\d+)Oe';
+    matches = regexp(fileName, pattern, 'tokens');
+
+    % The extracted values are a nested array of cells that need to be unwrapped
+    if ~isempty(matches)
+        magnetic_field = str2double(matches{1}{1});
+    else
+        error('Magnetic field value not found');
+    end
+
+    % output result
+    fitResults(i).FieldH = magnetic_field;
 end
 
 % Show fit results
 for i = 1:length(fitResults)
     fprintf('File: %s\n', fitResults(i).fileName);
-    fprintf('Icm: %.10f, Rnp: %.8f\n', fitResults(i).Icm, fitResults(i).Rnm);
-    fprintf('Icm: %.10f, Rnp: %.8f\n\n', fitResults(i).Icp, fitResults(i).Rnp);
+    fprintf('Icm: %.10f, Rnp: %.10f\n', fitResults(i).Icm, fitResults(i).Rnm);
+    fprintf('Icp: %.10f, Rnp: %.10f\n\n', fitResults(i).Icp, fitResults(i).Rnp);
 end
 % Open the file to write the result
 outputFile = 'fit_results.txt';
@@ -105,7 +137,7 @@ for i = 1:length(fitResults)
     end
     fprintf(fid, 'File: %s\n', fitResults(i).fileName);
     fprintf(fid, 'Icm: %.10f, Rnm: %.10f\n', fitResults(i).Icm, fitResults(i).Rnm);
-    fprintf(fid, 'Icp: %.10f, Rnp: %.10f\n\n', fitResults(i).Icp, fitResults(i).Rnp);
+    fprintf(fid, 'Icp: %.10f, Rnp: %.10f\n\n', fitResults(i).Icp, fitResults(i).Rnp); 
 end
 fclose(fid);
 
@@ -113,7 +145,7 @@ fprintf('Fitting results saved to %s\n', outputFile);
 
 %% ############### Plotting ###############
 % Extract FieldH values
-fieldHValues = cell2mat(FieldH);
+fieldHValues = [fitResults.FieldH];
 
 % Extract Icm values
 IcmValues = [fitResults.Icm];
@@ -124,6 +156,6 @@ figure;
 %plot(fieldHValues, IcmValues, '-o');
 plot(fieldHValues, IcpValues, '-o');
 xlabel('Magnetic Field (Oe)');
-ylabel('Icm (A)');
+ylabel('Icp (A)');
 title('Magnetic Field vs Ic');
 grid on;
