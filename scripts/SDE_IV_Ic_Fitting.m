@@ -3,16 +3,12 @@ clc;clear;close all;
 % Data file name
 file_name = 'SDE-2.dat';
 
-% Magnetic fields in Oersted (Oe)
+% Magnetic fields in Oersted (Oe)a
 FieldH = {12500; 12000; 11000; 10000; 9000; 8000; 7000; 6000; 5000; 4000; 3000; 2000; 1000; 0; -1000; -2000; -3000; -4000; -3000; -2000; -1000; 0; 1000; 2000; 3000; 4000};
 
 % Current step in Amperes (A)
 IStep = 1E-6;
 
-% Specify the range of data rows to be fitted, e.g. from row 1000 to row
-%   1601
-rowRangem = 1:600; % to fit the Ic-
-rowRangep = 1000:1601; % to fit the Ic+
 % Initial guesses [Ic, Rn]
 initialGuess = [1, 10];
 
@@ -29,7 +25,7 @@ data.Properties.VariableNames = {'VoltageV', 'CurrentA', 'dVdI'};
 numPointsPerSweep = length(data.CurrentA) / length(FieldH);
 % Check if the division is exact
 if rem(length(data.CurrentA), length(FieldH)) ~= 0
-    error('The number of data points is not evenly divisible by the number of fields.');
+    error('The number of data poinzts is not evenly divisible by the number of fields.');
 end
 % Split data by magnetic fields and save to individual files
 for i = 1:length(FieldH)
@@ -82,15 +78,21 @@ for i = 1:length(sortedFiles)
     % Read file data
     data = load(fileName);
     
+    % Specify the range of data rows to be fitted, e.g. from row 1000 to row
+    %   1601
+    V_threshold = 1E-4; % Setting the voltage threshold, e.g. 0.1 V
+    rowRangem = intersect(find(data(:,1) < 0 & abs(data(:,3)) > V_threshold), 1:800); % to fit the Ic-
+    rowRangep = intersect(find(data(:,1) > 0 & abs(data(:,3)) > V_threshold), 801:1601); % to fit the Ic+
+
     xm = data(rowRangem, 3);
     ym = data(rowRangem, 1);
     xp = data(rowRangep, 3);
     yp = data(rowRangep, 1);
-    
+
     % Define the fitted model, f(x) = (Ic^2 + (x/Rn)^2)^0.5
     fitModelm = @(params, x) -sqrt(params(1)^2 + (x/params(2)).^2);
     fitModelp = @(params, x) sqrt(params(1)^2 + (x/params(2)).^2);
-    % Fitting the data using non-linear least squares
+    % Fitting the data using non-linear least squareq
     options = optimoptions('lsqcurvefit', 'Display', 'off');
     fittedParamsm = lsqcurvefit(fitModelm, initialGuess, smooth(xm), smooth(ym), [], [], options);
     fittedParamsp = lsqcurvefit(fitModelp, initialGuess, smooth(xp), smooth(yp), [], [], options);
@@ -101,11 +103,12 @@ for i = 1:length(sortedFiles)
     fitResults(i).Rnm = fittedParamsm(2);
     fitResults(i).Icp = fittedParamsp(1);
     fitResults(i).Rnp = fittedParamsp(2);
+    fitResults(i).deltaIc = abs(fitResults(i).Icp) - abs(fitResults(i).Icm);
     
     % Extracting magnetic field values using regular expressions
     pattern = 'Field_(-?\d+)Oe';
     matches = regexp(fileName, pattern, 'tokens');
-
+    
     % The extracted values are a nested array of cells that need to be unwrapped
     if ~isempty(matches)
         magnetic_field = str2double(matches{1}{1});
@@ -137,7 +140,7 @@ for i = 1:length(fitResults)
     end
     fprintf(fid, 'File: %s\n', fitResults(i).fileName);
     fprintf(fid, 'Icm: %.10f, Rnm: %.10f\n', fitResults(i).Icm, fitResults(i).Rnm);
-    fprintf(fid, 'Icp: %.10f, Rnp: %.10f\n\n', fitResults(i).Icp, fitResults(i).Rnp); 
+    fprintf(fid, 'Icp: %.10f, Rnp: %.10f\n\n', fitResults(i).Icp, fitResults(i).Rnp);
 end
 fclose(fid);
 
@@ -150,11 +153,12 @@ fieldHValues = [fitResults.FieldH];
 % Extract Icm values
 IcmValues = [fitResults.Icm];
 IcpValues = [fitResults.Icp];
+deltaIc = [fitResults.deltaIc];
 
 % Plot the data
 figure;
 %plot(fieldHValues, IcmValues, '-o');
-plot(fieldHValues, IcpValues, '-o');
+plot(fieldHValues, deltaIc, '-o');
 xlabel('Magnetic Field (Oe)');
 ylabel('Icp (A)');
 title('Magnetic Field vs Ic');
