@@ -1,12 +1,12 @@
 clc;clear;close all;
 %% ############### Load Data ###############
 % Load Data and Preprocess
-file_name = 'D5-AHE-PATTERN-4K.txt';
-opts = detectImportOptions(file_name, 'Delimiter', '\t', 'NumHeaderLines', 1);
-opts.SelectedVariableNames = {opts.VariableNames{4}, opts.VariableNames{6}, opts.VariableNames{8}};
+file_name = 'AHE_5K_sweep 5000Oe range.txt';
+opts = detectImportOptions(file_name, 'Delimiter', ',', 'NumHeaderLines', 1);
+opts.SelectedVariableNames = {opts.VariableNames{5}, opts.VariableNames{12}, opts.VariableNames{11}};
 data = readtable(file_name, opts);
 data.Properties.VariableNames = {'FieldH', 'CurrentA', 'VoltageV'};
-data.RawResistanceXY = data.VoltageV ./ data.CurrentA;
+data.RawResistanceXY = data.VoltageV;
 
 %% ############### Process Data ###############
 % Calculate the difference of FieldH to find the turning point from
@@ -18,13 +18,13 @@ posIndex = 1:turningPoint - 1;
 % Assume that the neg-Sweep is the second segment to process
 negIndex = turningPoint:length(data.FieldH);
 % Define the edges of the boxes
-edges = (-8000:10:8000); 
+edges = (-5000:10:5000); 
 % ReCalculate the box median (newFieldH)
 newFieldH = 0.5 * (edges(1:end-1) + edges(2:end));
 
 % Process pos-Sweep
 [~, ~, posLoc] = histcounts(data.FieldH(posIndex), edges);
-posResistance = data.VoltageV(posIndex) ./ data.CurrentA(posIndex);
+posResistance = data.VoltageV(posIndex);
 posValidIdx = posLoc > 0;
 %   defaultVal = NaN or 0
 newPosResistance = accumarray(posLoc(posValidIdx), posResistance(posValidIdx), [numel(edges)-1, 1], @mean, NaN);
@@ -33,7 +33,7 @@ newPosResistance = fillmissing(newPosResistance, 'pchip');
 
 % Process neg-Sweep
 [~, ~, negLoc] = histcounts(data.FieldH(negIndex), edges);
-negResistance = data.VoltageV(negIndex) ./ data.CurrentA(negIndex);
+negResistance = data.VoltageV(negIndex);
 negValidIdx = negLoc > 0;
 %   defaultVal = NaN or 0
 newNegResistance = accumarray(negLoc(negValidIdx), negResistance(negValidIdx), [numel(edges)-1, 1], @mean, NaN);
@@ -53,11 +53,13 @@ newData.newFieldH = [newFieldH, flip(newFieldH)];
 newData.newResistance = [asymPosResistance; asymNegResistance];
 
 %% ############### Plot Data ###############
-figure;
+figure(1);
 hold on;
 % Plot rawResistanceXY v.s. FieldH
 plot(data.FieldH, data.RawResistanceXY, 'g-', 'LineWidth', 2, 'DisplayName', 'raw AHE');
 % Plot pos-Sweep in red and neg-Sweep in blue
+figure(2);
+hold on;
 plot(newFieldH, asymPosResistance, 'r-', 'LineWidth', 1, 'DisplayName', 'pos-Sweep');
 plot(newFieldH, asymNegResistance, 'b-', 'LineWidth', 1, 'DisplayName', 'neg-Sweep');
 % Add title and axis labels
