@@ -5,17 +5,15 @@ end
 diary('log.txt');
 %% ############### User Defined ###############
 % Data file name
-NegPosSweepFileName = 'SYM-2-IV-01.dat';
-PosNegSweepFileName = 'SYM-2-IV.dat';
+NegPosSweepFileName = 'NbNotch-1-IV-0p4Tc-1.dat';
+PosNegSweepFileName = 'NbNotch-1-IV-0p4Tc-2.dat';
 
 % Magnetic fields in Oersted (Oe)a
-FieldH = {-12500; -12000; -11000; -10000; -9000; -8000; -7000; -6000; -5000; 
-    -4000; -3000; -2000; -1000; -900; -800; -700; -600; -500; -400; -300; 
-    -200; -100; 0; 100; 200; 300; 400; 500; 600; 700; 800; 900; 1000; 2000; 
-    3000; 4000; 5000; 6000; 7000; 8000; 9000; 10000; 11000; 12000; 12500};
+FieldH = {-200; -100; 0; 100; 200; 300; 400; 500; 600; 700; 800; 900;
+    1000; 2000; 3000; 4000; 5000; 6000; 7000; 8000; 9000; 10000; 11000; 12000};
 
 % set up whether use the current folder
-UseExistingFolder = false;  % true or false
+UseExistingFolder = true;  % true or false
 
 %% ############### Load & Save Data ###############
 % Load Data and Preprocess
@@ -52,17 +50,23 @@ else
 end
 
 %% ############### Fit Process ###############
-NegPosFitResults = SubFunc.fitDataBasedOnSweepMode("NegPosSweep", newFolderPath);
-PosNegFitResults = SubFunc.fitDataBasedOnSweepMode("PosNegSweep", newFolderPath);
+% NegPosFitResults = SubFunc.fitDataBasedOnSweepMode("NegPosSweep", newFolderPath);
+% PosNegFitResults = SubFunc.fitDataBasedOnSweepMode("PosNegSweep", newFolderPath);
+
+%% ############### Contour Plot Process ###############
+NegPosConPlot = SubFunc.contourPlot("NegPosSweep", newFolderPath);
+PosNegConPlot = SubFunc.contourPlot("PosNegSweep", newFolderPath);
+% SubFunc.voltageStep("NegPosSweep", newFolderPath);
+% SubFunc.voltageStep("PosNegSweep", newFolderPath);
 
 %% ############### Plotting ###############
-figure(1);
-hold on;
-plot([NegPosFitResults.FieldH], [NegPosFitResults.Icp], 'b-o', 'LineWidth', 1.5, 'DisplayName', 'NegPos Sweep');
-plot([PosNegFitResults.FieldH], abs([PosNegFitResults.Icm]), 'r--s', 'LineWidth', 1.5, 'DisplayName', 'PosNeg Sweep');
-figure(2);
-hold on;
-plot([NegPosFitResults.FieldH], [NegPosFitResults.Icp] - abs([PosNegFitResults.Icm]), 'b-o', 'LineWidth', 1.5, 'DisplayName', 'NegPos Sweep');
+% figure(1);
+% hold on;
+% plot([NegPosFitResults.FieldH], [NegPosFitResults.Icp], 'b-o', 'LineWidth', 1.5, 'DisplayName', 'NegPos Sweep');
+% plot([PosNegFitResults.FieldH], abs([PosNegFitResults.Icm]), 'r--s', 'LineWidth', 1.5, 'DisplayName', 'PosNeg Sweep');
+% figure(2);
+% hold on;
+% plot([NegPosFitResults.FieldH], [NegPosFitResults.Icp] - abs([PosNegFitResults.Icm]), 'b-o', 'LineWidth', 1.5, 'DisplayName', 'NegPos Sweep');
 
 %% ############### diary off ###############
 diary off;
